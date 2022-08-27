@@ -42,7 +42,7 @@ ${EXECUTABLES}:
 	  done \
     done ; \
 
-build: git-status ${EXECUTABLES}
+build: ${EXECUTABLES}
 	-rm -rf build/current
 	mkdir -p build
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current

@@ -1,8 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/natemarks/puppers/version"
+)
 
 func main() {
-
-	fmt.Println("sdg")
+	fmt.Printf("version: %s\n", version.Version)
 }
