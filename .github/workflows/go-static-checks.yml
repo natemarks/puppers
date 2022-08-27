@@ -1,0 +1,27 @@
+name: make-static make-lint make-unittest
+on: [push, pull_request]
+
+jobs:
+  static_checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go2
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+      
+      - name: make-static
+        run: |
+          make static
+
+      - name: make-golint
+        run: |
+          make lint
+      
+      - name: make-unittest
+        run: |
+          make unittest
