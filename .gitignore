@@ -9,3 +9,5 @@ vendor/
 *.iml
 .venv/
 *.tar.gz
+
+*.log
