@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/natemarks/puppers/version"
 	"github.com/rs/zerolog"
@@ -23,5 +24,8 @@ func getLogger() (logMe *zerolog.Logger) {
 func main() {
 	logger := getLogger()
 	logger.Info().Msg("Puppers Starting")
-	logger.Info().Msg("Puppers Complete")
+	for {
+		logger.Info().Msg("I'm alive!!")
+		time.Sleep(4 * time.Second)
+	}
 }
