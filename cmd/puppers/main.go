@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -24,6 +25,7 @@ func getLogger() (logMe *zerolog.Logger) {
 func main() {
 	logger := getLogger()
 	logger.Info().Msg("Puppers Starting")
+	fmt.Println("Puppers starting. Ctrl-C to interrupt")
 	for {
 		logger.Info().Msg("I'm alive!!")
 		time.Sleep(4 * time.Second)
