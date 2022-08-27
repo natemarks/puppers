@@ -44,7 +44,7 @@ ${EXECUTABLES}:
 
 build: git-status ${EXECUTABLES}
 	-rm -rf build/current
-	mkdir -p build/current
+	mkdir -p build
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
 release: git-status build
