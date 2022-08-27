@@ -65,6 +65,8 @@ static: ## run fmt, vet, goimports, gocyclo
 			 go install golang.org/x/tools/cmd/goimports@latest; \
 			 goimports -w .; \
 			 test -z $(gocyclo -over 25 .); \
+			 go install honnef.co/go/tools/cmd/staticcheck@latest ; \
+			 staticcheck ./... ; \
     )
 
 lint:  ##  run golint
