@@ -6,6 +6,4 @@ The executable just writes a JSON log entry to STDOUT and to a log file every fe
 
 
 
-
-
 ## TODO
