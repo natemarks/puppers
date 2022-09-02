@@ -61,10 +61,11 @@ deploymenttest: ##  run all tests
 static: ## run fmt, vet, goimports, gocyclo
 	( \
 			 gofmt -w  -s .; \
-			 test -z $(go vet ./...); \
+			 test -z "$$(go vet ./...)"; \
 			 go install golang.org/x/tools/cmd/goimports@latest; \
 			 goimports -w .; \
-			 test -z $(gocyclo -over 25 .); \
+			 go install github.com/fzipp/gocyclo/cmd/gocyclo@latest; \
+			 test -z "$$(gocyclo -over 25 .)"; \
 			 go install honnef.co/go/tools/cmd/staticcheck@latest ; \
 			 staticcheck ./... ; \
     )
@@ -72,7 +73,7 @@ static: ## run fmt, vet, goimports, gocyclo
 lint:  ##  run golint
 	( \
 			 go install golang.org/x/lint/golint@latest; \
-			 golint ./...; \
+			 test -z "$$(golint ./...)"; \
     )
 
 bump: git-status clean-venv  ## bump version in main branch
