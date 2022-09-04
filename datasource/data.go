@@ -7,11 +7,27 @@ import (
 	"sync"
 	"time"
 
+	"context"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/natemarks/puppers"
 )
 
-func addEc2Instance(m map[string]string) {
-	m["Ec2InstanceId"] = "i-aeiou1234"
+func addEc2InstanceMetadata(m map[string]string) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return
+	}
+
+	client := imds.NewFromConfig(cfg)
+	instanceId, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+		Path: "instance-id",
+	})
+	if err == nil {
+		m["Ec2InstanceId"] = instanceId
+	}
+
+	return
 }
 
 // GetEventFromMessage returns a JSON message string
