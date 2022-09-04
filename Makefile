@@ -45,7 +45,7 @@ write_commit: git-status ## create version.txt for go:embed
 	echo $(COMMIT) > version.txt
 
 write_version: git-status ## create version.txt for go:embed
-	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
+	ifneq ($(shell git rev-parse --abbrev-ref HEAD),main)
 		$(error Not on branch $(DEFAULT_BRANCH))
 	else
 		echo $(VERSION) > version.txt
