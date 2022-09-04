@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"context"
+
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/natemarks/puppers"
@@ -24,10 +25,9 @@ func addEc2InstanceMetadata(m map[string]string) {
 		Path: "instance-id",
 	})
 	if err == nil {
-		m["Ec2InstanceId"] = fmt.Sprint("%v", instanceId)
+		m["Ec2InstanceId"] = fmt.Sprintf("%v", instanceId)
 	}
 
-	return
 }
 
 // GetEventFromMessage returns a JSON message string
