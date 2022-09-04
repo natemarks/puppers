@@ -45,11 +45,11 @@ write_commit: git-status ## create version.txt for go:embed
 	echo $(COMMIT) > version.txt
 
 write_version: git-status ## create version.txt for go:embed
-	ifneq ($(CURRENT_BRANCH), $(DEFAULT_BRANCH))
-		$(error Not on branch $(DEFAULT_BRANCH))
-	else
-		echo $(VERSION) > version.txt
-	endif
+ifneq ($(CURRENT_BRANCH), $(DEFAULT_BRANCH))
+	$(error Not on branch $(DEFAULT_BRANCH))
+else
+	echo $(VERSION) > version.txt
+endif
 
 build: write_commit ${EXECUTABLES}
 	-rm -rf build/current
