@@ -11,3 +11,5 @@ vendor/
 *.tar.gz
 
 *.log
+
+version.txt

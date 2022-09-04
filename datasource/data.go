@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/natemarks/puppers/version"
+	"github.com/natemarks/puppers"
 )
 
 // LogEvent Define the structure of the generated JSON log messages
@@ -19,7 +19,7 @@ type LogEvent struct {
 // GetEventFromMessage returns a JSON message string
 func GetEventFromMessage(message string) (event string) {
 	marshalled, err := json.Marshal(
-		LogEvent{Version: version.Version, Message: message})
+		LogEvent{Version: puppers.Version, Message: message})
 	if err != nil {
 		panic(err)
 	}
