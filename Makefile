@@ -60,7 +60,7 @@ release: git-status build
 deploymenttest: ##  run all tests
 	go test -v ./...
 
-static: ## run fmt, vet, goimports, gocyclo
+static: generate_version ## run fmt, vet, goimports, gocyclo
 	( \
 			 gofmt -w  -s .; \
 			 test -z "$$(go vet ./...)"; \
