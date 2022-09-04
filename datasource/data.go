@@ -10,10 +10,8 @@ import (
 	"github.com/natemarks/puppers"
 )
 
-// LogEvent Define the structure of the generated JSON log messages
-type LogEvent struct {
-	Version string `json:"version"`
-	Message string `json:"message"`
+func addEc2Instance(m map[string]string) {
+	m["Ec2InstanceId"] = "i-aeiou1234"
 }
 
 // GetEventFromMessage returns a JSON message string
@@ -21,6 +19,7 @@ func GetEventFromMessage(message string) (event string) {
 	m := make(map[string]string)
 	m["Version"] = puppers.Version
 	m["Message"] = message
+	addEc2Instance(m)
 	marshalled, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
