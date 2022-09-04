@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"sync"
 	"time"
+
 	"github.com/natemarks/puppers"
 )
-
 
 // LogEvent Define the structure of the generated JSON log messages
 type LogEvent struct {
