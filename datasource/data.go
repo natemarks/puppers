@@ -24,7 +24,7 @@ func addEc2InstanceMetadata(m map[string]string) {
 		Path: "instance-id",
 	})
 	if err == nil {
-		m["Ec2InstanceId"] = instanceId
+		m["Ec2InstanceId"] = fmt.Sprint("%v", instanceId)
 	}
 
 	return
@@ -35,7 +35,7 @@ func GetEventFromMessage(message string) (event string) {
 	m := make(map[string]string)
 	m["Version"] = puppers.Version
 	m["Message"] = message
-	addEc2Instance(m)
+	addEc2InstanceMetadata(m)
 	marshalled, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
