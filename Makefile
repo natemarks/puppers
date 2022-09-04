@@ -75,6 +75,7 @@ static: generate_version ## run fmt, vet, goimports, gocyclo
 lint:  ##  run golint
 	( \
 			 go install golang.org/x/lint/golint@latest; \
+			 golint ./...; \
 			 test -z "$$(golint ./...)"; \
     )
 
