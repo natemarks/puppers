@@ -50,12 +50,16 @@ build: generate_version ${EXECUTABLES}
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
 release: git-status build
-	mkdir -p release/$(VERSION)
-	@for o in $(GOOS); do \
-	  for a in $(GOARCH); do \
-        tar -C ./build/$(COMMIT)/$${o}/$${a} -czvf release/$(VERSION)/puppers_$(VERSION)_$${o}_$${a}.tar.gz . ; \
-	  done \
-    done ; \
+	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
+		mkdir -p release/$(VERSION)
+		@for o in $(GOOS); do \
+			for a in $(GOARCH); do \
+					tar -C ./build/$(COMMIT)/$${o}/$${a} -czvf release/$(VERSION)/puppers_$(VERSION)_$${o}_$${a}.tar.gz . ; \
+			done \
+			done ; \
+	else
+		$(error Not on branch $(DEFAULT_BRANCH))
+	endif
 
 deploymenttest: ##  run all tests
 	go test -v ./...
