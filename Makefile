@@ -4,7 +4,7 @@
 # Be sure to place this BEFORE `include` directives, if any.
 PKG := github.com/natemarks/puppers
 DEFAULT_BRANCH := main
-VERSION := 0.0.2
+VERSION := 0.0.3
 COMMIT := $(shell git rev-parse HEAD)
 SHELL := $(shell which bash)
 CDIR = $(shell pwd)
@@ -41,19 +41,28 @@ ${EXECUTABLES}:
 	  done \
     done ; \
 
-generate_version: git-status ## create version.txt for go:embed
+write_commit: git-status ## create version.txt for go:embed
 	echo $(COMMIT) > version.txt
 
-build: generate_version ${EXECUTABLES}
+write_version: git-status ## create version.txt for go:embed
+	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
+		$(error Not on branch $(DEFAULT_BRANCH))
+	else
+		echo $(VERSION) > version.txt
+	endif
+
+build: write_commit ${EXECUTABLES}
 	-rm -rf build/current
 	mkdir -p build
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
-release: git-status build
+release: git-status write_version ${EXECUTABLES}
 	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
-
 		$(error Not on branch $(DEFAULT_BRANCH))
 	else
+		-rm -rf build/current
+		mkdir -p build
+		ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 		mkdir -p release/$(VERSION)
 		@for o in $(GOOS); do \
 			for a in $(GOARCH); do \
@@ -65,7 +74,7 @@ release: git-status build
 deploymenttest: ##  run all tests
 	go test -v ./...
 
-static: generate_version lint ## run fmt, vet, goimports, gocyclo
+static: write_commit lint ## run fmt, vet, goimports, gocyclo
 	( \
 			 gofmt -w  -s .; \
 			 test -z "$$(go vet ./...)"; \
