@@ -57,19 +57,20 @@ build: write_commit ${EXECUTABLES}
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
 release: git-status write_version ${EXECUTABLES}
-	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
-		$(error Not on branch $(DEFAULT_BRANCH))
-	else
-		-rm -rf build/current
-		mkdir -p build
-		ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
-		mkdir -p release/$(VERSION)
-		@for o in $(GOOS); do \
-			for a in $(GOARCH); do \
-					tar -C ./build/$(COMMIT)/$${o}/$${a} -czvf release/$(VERSION)/puppers_$(VERSION)_$${o}_$${a}.tar.gz . ; \
-			done \
-			done ; \
-	endif
+ifneq ($(CURRENT_BRANCH), $(DEFAULT_BRANCH))
+	$(error Not on branch $(DEFAULT_BRANCH))
+else
+	-rm -rf build/current
+	mkdir -p build
+	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
+	mkdir -p release/$(VERSION)
+	@for o in $(GOOS); do \
+		for a in $(GOARCH); do \
+				tar -C ./build/$(COMMIT)/$${o}/$${a} -czvf release/$(VERSION)/puppers_$(VERSION)_$${o}_$${a}.tar.gz . ; \
+		done \
+		done ; \
+		
+endif
 
 deploymenttest: ##  run all tests
 	go test -v ./...
