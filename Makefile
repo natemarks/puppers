@@ -50,7 +50,7 @@ build: generate_version ${EXECUTABLES}
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
 release: git-status build
-	ifneq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
+	ifeq ($(shell git rev-parse --abbrev-ref HEAD),$(DEFAULT_BRANCH))
 		mkdir -p release/$(VERSION)
 		@for o in $(GOOS); do \
 			for a in $(GOARCH); do \
