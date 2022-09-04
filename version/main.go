@@ -1,4 +1,13 @@
 package version
 
-// Version program version variable set by go build -ldflags
-var Version = "undefined"
+import (
+	_ "embed"
+	"strings"
+)
+
+
+var (
+	Version string = strings.TrimSpace(version)
+	//go:embed version.txt
+	version string
+)

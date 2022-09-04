@@ -6,9 +6,16 @@ import (
 	"encoding/json"
 	"sync"
 	"time"
-
-	"github.com/natemarks/puppers/version"
+	_ "embed"
+	"strings"
 )
+
+var (
+	Version string = strings.TrimSpace(version)
+	//go:embed version.txt
+	version string
+)
+
 
 // LogEvent Define the structure of the generated JSON log messages
 type LogEvent struct {

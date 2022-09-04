@@ -37,12 +37,14 @@ ${EXECUTABLES}:
         echo "VERSION: $(VERSION)" > build/$(COMMIT)/$${o}/$${a}/version.txt ; \
         echo "COMMIT: $(COMMIT)" >> build/$(COMMIT)/$${o}/$${a}/version.txt ; \
         env GOOS=$${o} GOARCH=$${a} \
-        go build  -v -o build/$(COMMIT)/$${o}/$${a}/$@ \
-				-ldflags="-X github.com/natemarks/puppers/version.Version=${VERSION}" ${PKG}/cmd/$@; \
+        go build  -v -o build/$(COMMIT)/$${o}/$${a}/$@ ${PKG}/cmd/$@; \
 	  done \
     done ; \
 
-build: ${EXECUTABLES}
+generate_version: git-status ## create version.txt for go:embed
+	echo $(COMMIT) > version.txt
+
+build: generate_version ${EXECUTABLES}
 	-rm -rf build/current
 	mkdir -p build
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
