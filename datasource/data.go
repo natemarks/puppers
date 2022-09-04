@@ -21,11 +21,11 @@ func addEc2InstanceMetadata(m map[string]string) {
 	}
 
 	client := imds.NewFromConfig(cfg)
-	instanceId, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+	instanceID, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{
 		Path: "instance-id",
 	})
 	if err == nil {
-		m["Ec2InstanceId"] = fmt.Sprintf("%v", instanceId)
+		m["Ec2InstanceId"] = fmt.Sprintf("%v", instanceID)
 	}
 
 }
