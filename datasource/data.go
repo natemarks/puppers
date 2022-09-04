@@ -18,8 +18,10 @@ type LogEvent struct {
 
 // GetEventFromMessage returns a JSON message string
 func GetEventFromMessage(message string) (event string) {
-	marshalled, err := json.Marshal(
-		LogEvent{Version: puppers.Version, Message: message})
+	m := make(map[string]string)
+	m["Version"] = puppers.Version
+	m["Message"] = message
+	marshalled, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
