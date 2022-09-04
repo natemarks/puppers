@@ -6,14 +6,7 @@ import (
 	"encoding/json"
 	"sync"
 	"time"
-	_ "embed"
-	"strings"
-)
-
-var (
-	Version string = strings.TrimSpace(version)
-	//go:embed version.txt
-	version string
+	"github.com/natemarks/puppers"
 )
 
 
@@ -26,7 +19,7 @@ type LogEvent struct {
 // GetEventFromMessage returns a JSON message string
 func GetEventFromMessage(message string) (event string) {
 	marshalled, err := json.Marshal(
-		LogEvent{Version: version.Version, Message: message})
+		LogEvent{Version: puppers.Version, Message: message})
 	if err != nil {
 		panic(err)
 	}
