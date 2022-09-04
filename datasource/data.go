@@ -7,19 +7,36 @@ import (
 	"sync"
 	"time"
 
+	"context"
+
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/ec2/imds"
 	"github.com/natemarks/puppers"
 )
 
-// LogEvent Define the structure of the generated JSON log messages
-type LogEvent struct {
-	Version string `json:"version"`
-	Message string `json:"message"`
+func addEc2InstanceMetadata(m map[string]string) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return
+	}
+
+	client := imds.NewFromConfig(cfg)
+	instanceID, err := client.GetMetadata(context.TODO(), &imds.GetMetadataInput{
+		Path: "instance-id",
+	})
+	if err == nil {
+		m["Ec2InstanceId"] = fmt.Sprintf("%v", instanceID)
+	}
+
 }
 
 // GetEventFromMessage returns a JSON message string
 func GetEventFromMessage(message string) (event string) {
-	marshalled, err := json.Marshal(
-		LogEvent{Version: puppers.Version, Message: message})
+	m := make(map[string]string)
+	m["Version"] = puppers.Version
+	m["Message"] = message
+	addEc2InstanceMetadata(m)
+	marshalled, err := json.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
