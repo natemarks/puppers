@@ -56,6 +56,10 @@ build: write_commit ${EXECUTABLES}
 	mkdir -p build
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
+s3_upload: ## upload commit build to S3 bucket for testing
+		zip $(EXECUTABLES)_$(COMMIT).zip build/$(COMMIT)
+		aws s3 cp $(EXECUTABLES)_$(COMMIT).zip "s3://$(S3_BUCKET)/puppers/"
+
 release: git-status write_version ${EXECUTABLES}
 ifneq ($(CURRENT_BRANCH), $(DEFAULT_BRANCH))
 	$(error Not on branch $(DEFAULT_BRANCH))
