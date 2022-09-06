@@ -13,3 +13,4 @@ vendor/
 *.log
 
 version.txt
+*.zip
