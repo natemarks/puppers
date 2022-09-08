@@ -16,7 +16,7 @@ type RDSCredentials struct {
 	Username             string `json:"username"`
 	Password             string `json:"password"`
 	Engine               string `json:"engine"`
-	Port                 string `json:"port"`
+	Port                 int    `json:"port"`
 	DbInstanceIdentifier string `json:"dbInstanceIdentifier"`
 	Host                 string `json:"host"`
 }
