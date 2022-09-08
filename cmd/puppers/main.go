@@ -2,6 +2,7 @@ package main
 
 // Package main checks access to an RDS instance and writes json logs to puppers.log
 import (
+	"errors"
 	"os"
 
 	"github.com/natemarks/puppers/secrets"
@@ -12,9 +13,14 @@ import (
 	"github.com/natemarks/ec2metadata"
 )
 
-const (
-	secretName = "SecretA720EF05-2pmGVjf2abKX"
-)
+func getSecretFromEnvar() string {
+	// secretName "SecretA720EF05-2pmGVjf2abKX"
+	secretName, set := os.LookupEnv("PUPPERS_SECRET_NAME")
+	if !set {
+		panic(errors.New("PUPPERS_SECRET_NAME is not set"))
+	}
+	return secretName
+}
 
 func main() {
 	logFile, err := os.OpenFile("puppers.log",
@@ -32,6 +38,6 @@ func main() {
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
-	creds := secrets.GetRDSCredentials(secretName, &log)
+	creds := secrets.GetRDSCredentials(getSecretFromEnvar(), &log)
 	log.Info().Msgf("found credentials for hostname: %s", creds.Host)
 }
