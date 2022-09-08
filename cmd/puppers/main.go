@@ -3,9 +3,10 @@ package main
 // Package main runs on a loop creating JSON log messages and pushing them to cloudwatch
 // I stole the logic entirely from https://github.com/mathisve/golang-cloudwatch-logs-example
 import (
+	"os"
+
 	"github.com/natemarks/puppers"
 	"github.com/rs/zerolog"
-	"os"
 )
 
 func main() {
