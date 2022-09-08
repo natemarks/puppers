@@ -8,7 +8,7 @@ import (
 	"github.com/natemarks/puppers"
 	"github.com/rs/zerolog"
 
-	nmec2 "github.com/natemarks/ec2metadata"
+	"github.com/natemarks/ec2metadata"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Info().Msg("puppers is starting")
-	instanceID, err := nmec2.GetV2("instance-id")
+	instanceID, err := ec2metadata.GetV2("instance-id")
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
