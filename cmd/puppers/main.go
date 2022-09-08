@@ -1,14 +1,19 @@
 package main
 
-// Package main runs on a loop creating JSON log messages and pushing them to cloudwatch
-// I stole the logic entirely from https://github.com/mathisve/golang-cloudwatch-logs-example
+// Package main checks access to an RDS instance and writes json logs to puppers.log
 import (
 	"os"
+
+	"github.com/natemarks/puppers/secrets"
 
 	"github.com/natemarks/puppers"
 	"github.com/rs/zerolog"
 
 	"github.com/natemarks/ec2metadata"
+)
+
+const (
+	secretName = "SecretA720EF05-2pmGVjf2abKX"
 )
 
 func main() {
@@ -27,4 +32,6 @@ func main() {
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
+	creds := secrets.GetRDSCredentials(secretName, &log)
+	log.Info().Msgf("found credentials for hostname: %s", creds.Host)
 }
