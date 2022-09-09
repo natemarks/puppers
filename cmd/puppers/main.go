@@ -34,7 +34,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Info().Msg("puppers is starting")
-	instanceID, err := ec2metadata.GetV2("instance-id")
+	instanceID, err := ec2metadata.GetAWSEc2Metadata("instance-id")
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
