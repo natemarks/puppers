@@ -3,9 +3,8 @@ package main
 // Package main checks access to an RDS instance and writes json logs to puppers.log
 import (
 	"errors"
-	"os"
-
 	"github.com/natemarks/puppers/secrets"
+	"os"
 
 	"github.com/natemarks/puppers"
 	"github.com/rs/zerolog"
@@ -34,7 +33,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	log.Info().Msg("puppers is starting")
-	instanceID, err := ec2metadata.GetV2("instance-id")
+	instanceID, err := ec2metadata.GetAWSEc2Metadata("instance-id")
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
