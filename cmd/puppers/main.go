@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/natemarks/postgr8/command"
+
 	"github.com/natemarks/puppers/secrets"
 
 	"github.com/natemarks/puppers"
@@ -40,4 +42,25 @@ func main() {
 	}
 	creds := secrets.GetRDSCredentials(getSecretFromEnvar(), &log)
 	log.Info().Msgf("found credentials for hostname: %s", creds.Host)
+	// Check connectivity to database instance
+	if !command.TCPOk(creds, 30) {
+		log.Panic().Msgf("TCP Connection Failure: %s:%d", creds.Host, creds.Port)
+	}
+	log.Info().Msgf("TCP Connection Success: %s:%d", creds.Host, creds.Port)
+
+	// Make sure the credentials are valid
+	validCreds, err := command.ValidCredentials(creds)
+	if !validCreds {
+		log.Panic().Msg(err.Error())
+	}
+	log.Info().Msg("database credentials are valid")
+	conn, err := command.NewInstanceConn(creds)
+	if err != nil {
+		log.Panic().Msg(err.Error())
+	}
+	dbNames, err := command.ListDatabases(conn)
+	if err != nil {
+		log.Panic().Msg(err.Error())
+	}
+	log.Info().Msgf("Found databases in instance: %d", len(dbNames))
 }

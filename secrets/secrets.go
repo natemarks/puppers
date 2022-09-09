@@ -7,22 +7,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/natemarks/postgr8/command"
 
 	"github.com/rs/zerolog"
 )
 
-// RDSCredentials Define the structure of the RDS generated credentials JSON
-type RDSCredentials struct {
-	Username             string `json:"username"`
-	Password             string `json:"password"`
-	Engine               string `json:"engine"`
-	Port                 int    `json:"port"`
-	DbInstanceIdentifier string `json:"dbInstanceIdentifier"`
-	Host                 string `json:"host"`
-}
-
 // GetRDSCredentials Get RDS Credentials from AWS Secrets Manager
-func GetRDSCredentials(secretName string, log *zerolog.Logger) (creds RDSCredentials) {
+func GetRDSCredentials(secretName string, log *zerolog.Logger) (connectionParams command.InstanceConnectionParams) {
 	log.Info().Msg("getting credentials from secrets manager")
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
@@ -41,9 +32,9 @@ func GetRDSCredentials(secretName string, log *zerolog.Logger) (creds RDSCredent
 	}
 	bytes := []byte(*result.SecretString)
 
-	err = json.Unmarshal([]byte(bytes), &creds)
+	err = json.Unmarshal([]byte(bytes), &connectionParams)
 	if err != nil {
 		log.Panic().Msg(err.Error())
 	}
-	return creds
+	return connectionParams
 }
