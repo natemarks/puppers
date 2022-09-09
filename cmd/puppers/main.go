@@ -3,8 +3,9 @@ package main
 // Package main checks access to an RDS instance and writes json logs to puppers.log
 import (
 	"errors"
-	"github.com/natemarks/puppers/secrets"
 	"os"
+
+	"github.com/natemarks/puppers/secrets"
 
 	"github.com/natemarks/puppers"
 	"github.com/rs/zerolog"
