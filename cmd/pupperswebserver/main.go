@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/rs/zerolog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -30,7 +31,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
 
-	"github.com/rs/zerolog"
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 const defaultGracefulShutdownTimeout = "200s"
@@ -85,6 +86,11 @@ func init() {
 		log.Panic().Msg(err.Error())
 	}
 	log.Info().Msgf("Found databases in instance: %d", len(dbNames))
+
+	xray.Configure(xray.Config{
+		DaemonAddr:     "127.0.0.1:8080", // default
+		ServiceVersion: puppers.Version,
+	})
 }
 
 func heartbeat(w http.ResponseWriter, r *http.Request) {
@@ -125,9 +131,10 @@ func main() {
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", wait)
-	mux.HandleFunc("/heartbeat", heartbeat)
+	mux.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), wait))
+	mux.Handle("/heartbeat", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), heartbeat))
+	//mux.HandleFunc("/", wait)
+	//mux.HandleFunc("/heartbeat", heartbeat)
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
