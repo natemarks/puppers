@@ -15,15 +15,12 @@ package main
 //
 // shutdown - health/ready check
 import (
-	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/natemarks/puppers"
 	"github.com/natemarks/puppers/secrets"
@@ -32,8 +29,6 @@ import (
 	"github.com/natemarks/postgr8/command"
 
 	"github.com/rs/zerolog"
-
-	ginzerolog "github.com/dn365/gin-zerolog"
 )
 
 const defaultGracefulShutdownTimeout = "200s"
@@ -98,6 +93,36 @@ func waitResponse(w string) string {
 	return "Invalid wait parameter example 500ms"
 }
 
+func hearbeat(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string)
+	resp["message"] = "Status OK"
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
+}
+
+func wait(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string)
+	waitDuration := r.URL.Query().Get("wait")
+	wait, err := time.ParseDuration(waitDuration)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		resp["message"] = "Invalid wait parameter example 500ms"
+		jsonResp, _ := json.Marshal(resp)
+		w.Write(jsonResp)
+		return
+	}
+	time.Sleep(wait)
+	w.WriteHeader(http.StatusOK)
+	resp["message"] = fmt.Sprintf("You waited for %s", wait)
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
+
+	return
+}
+
 func main() {
 	defer func(logFile *os.File) {
 		err := logFile.Close()
@@ -108,62 +133,14 @@ func main() {
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
 
-	router := gin.Default()
-	router.Use(ginzerolog.Logger("gin"), gin.Recovery())
-	router.GET("/", func(c *gin.Context) {
-		q := c.Request.URL.Query()
-		c.String(http.StatusOK, waitResponse(fmt.Sprint(q["wait"][0])))
-	})
+	http.HandleFunc("/", wait)
+	http.HandleFunc("/heartbeat", hearbeat)
 
-	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+	err := http.ListenAndServe(":8080", nil)
+	if errors.Is(err, http.ErrServerClosed) {
+		fmt.Printf("server closed\n")
+	} else if err != nil {
+		fmt.Printf("error starting server: %s\n", err)
+		os.Exit(1)
 	}
-
-	hbRouter := gin.Default()
-	hbRouter.Use(ginzerolog.Logger("gin"), gin.Recovery())
-
-	hbRouter.GET("/heartbeat", func(c *gin.Context) {
-		c.Data(200, "text/plain", []byte("."))
-	})
-
-	hbSrv := &http.Server{
-		Addr:    ":8786",
-		Handler: hbRouter,
-	}
-
-	go func() {
-		// service connections
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("listen: %s\n", err)
-		}
-	}()
-
-	go func() {
-		// service connections
-		if err := hbSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("listen: %s\n", err)
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shut down the server with
-	// a timeout of 5 seconds.
-	quit := make(chan os.Signal, 1)
-	// kill (no param) default send syscall.SIGTERM
-	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be caught, so don't need to add it
-	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Info().Msg("Shutdown Server ...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server Shutdown: %s", err.Error())
-	}
-	if err := hbSrv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server Shutdown: %s", err.Error())
-	}
-
-	log.Info().Msg("Graceful shutdown complete")
 }
