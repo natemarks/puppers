@@ -113,8 +113,6 @@ func wait(w http.ResponseWriter, r *http.Request) {
 	resp["message"] = fmt.Sprintf("You waited for %s", wait)
 	jsonResp, _ := json.Marshal(resp)
 	w.Write(jsonResp)
-
-	return
 }
 
 func main() {
