@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.14
 	github.com/aws/aws-sdk-go-v2/config v1.17.5
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.15.22
+	github.com/lib/pq v1.10.6
 	github.com/natemarks/ec2metadata v0.0.4
 	github.com/natemarks/postgr8 v0.0.6
 	github.com/rs/zerolog v1.28.0
