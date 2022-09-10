@@ -18,12 +18,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog"
 
 	"github.com/natemarks/puppers"
 	"github.com/natemarks/puppers/secrets"
@@ -131,8 +132,10 @@ func main() {
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
 	mux := http.NewServeMux()
-	mux.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), wait))
-	mux.Handle("/heartbeat", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), heartbeat))
+	waitHandler := http.HandlerFunc(wait)
+	heartbeatHandler := http.HandlerFunc(heartbeat)
+	mux.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), waitHandler))
+	mux.Handle("/heartbeat", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), heartbeatHandler))
 	//mux.HandleFunc("/", wait)
 	//mux.HandleFunc("/heartbeat", heartbeat)
 	srv := &http.Server{
