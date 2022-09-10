@@ -2,7 +2,6 @@ package main
 
 // Package main checks access to an RDS instance and writes json logs to puppers.log
 import (
-	"errors"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -15,15 +14,6 @@ import (
 
 	"github.com/natemarks/ec2metadata"
 )
-
-func getSecretFromEnvar() string {
-	// secretName "SecretA720EF05-2pmGVjf2abKX"
-	secretName, set := os.LookupEnv("PUPPERS_SECRET_NAME")
-	if !set {
-		panic(errors.New("PUPPERS_SECRET_NAME is not set"))
-	}
-	return secretName
-}
 
 func main() {
 	logFile, err := os.OpenFile("puppers.log",
@@ -41,8 +31,7 @@ func main() {
 	if err == nil {
 		log = log.With().Str("instance-id", instanceID).Logger()
 	}
-	creds := secrets.GetRDSCredentials(getSecretFromEnvar(), &log)
-	log.Info().Msgf("found credentials for hostname: %s", creds.Host)
+	creds := secrets.GetRDSCredentials(secrets.GetSecretFromEnvar(), &log)
 	// Check connectivity to database instance
 	if !command.TCPOk(creds, 30) {
 		log.Panic().Msgf("TCP Connection Failure: %s:%d", creds.Host, creds.Port)

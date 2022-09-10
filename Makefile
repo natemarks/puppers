@@ -10,7 +10,7 @@ SHELL := $(shell which bash)
 CDIR = $(shell pwd)
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 DEFAULT_BRANCH := main
-EXECUTABLES := puppers
+EXECUTABLES := puppers pupperswebserver
 GOOS := linux darwin
 GOARCH := amd64
 
@@ -57,8 +57,8 @@ build: write_commit ${EXECUTABLES}
 	ln -s $(CDIR)/build/$(COMMIT) $(CDIR)/build/current
 
 s3_upload: ## upload commit build to S3 bucket for testing
-		zip -r $(EXECUTABLES)_$(COMMIT).zip build/$(COMMIT)
-		aws s3 cp $(EXECUTABLES)_$(COMMIT).zip "s3://$(S3_BUCKET)/puppers/"
+		zip -r puppers_$(COMMIT).zip build/$(COMMIT)
+		aws s3 cp puppers_$(COMMIT).zip "s3://$(S3_BUCKET)/puppers/"
 
 release: git-status write_version ${EXECUTABLES}
 ifneq ($(CURRENT_BRANCH), $(DEFAULT_BRANCH))
