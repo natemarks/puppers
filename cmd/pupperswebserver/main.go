@@ -24,6 +24,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/rs/zerolog/hlog"
+
 	"github.com/rs/zerolog"
 
 	"github.com/natemarks/puppers"
@@ -32,7 +34,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
 
-	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/justinas/alice"
 )
 
 const defaultGracefulShutdownTimeout = "200s"
@@ -40,18 +42,12 @@ const defaultGracefulShutdownTimeout = "200s"
 var gracefulShutdownTimeout time.Duration
 var err error
 var creds command.InstanceConnectionParams
-var logFile *os.File
 var log zerolog.Logger
 
 // Check all dependencies at startup
 func init() {
-	logFile, err = os.OpenFile("pupperswebserver.log",
-		os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		panic(err)
-	}
 	// configure logger
-	log = zerolog.New(logFile).With().Timestamp().Logger()
+	log = zerolog.New(os.Stdout).With().Timestamp().Logger()
 	log = log.With().Str("version", puppers.Version).Logger()
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -88,10 +84,6 @@ func init() {
 	}
 	log.Info().Msgf("Found databases in instance: %d", len(dbNames))
 
-	xray.Configure(xray.Config{
-		DaemonAddr:     "127.0.0.1:8080", // default
-		ServiceVersion: puppers.Version,
-	})
 }
 
 func heartbeat(w http.ResponseWriter, r *http.Request) {
@@ -109,6 +101,9 @@ func wait(w http.ResponseWriter, r *http.Request) {
 	waitDuration := r.URL.Query().Get("wait")
 	wait, err := time.ParseDuration(waitDuration)
 	if err != nil {
+		hlog.FromRequest(r).Error().
+			Str("status", "StatusUnprocessableEntity").
+			Msg("Invalid wait parameter example 500ms")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		resp["message"] = "Invalid wait parameter example 500ms"
 		jsonResp, _ := json.Marshal(resp)
@@ -116,6 +111,9 @@ func wait(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	time.Sleep(wait)
+	hlog.FromRequest(r).Info().
+		Str("status", "StatusOK").
+		Msg(fmt.Sprintf("You waited for %s", wait))
 	w.WriteHeader(http.StatusOK)
 	resp["message"] = fmt.Sprintf("You waited for %s", wait)
 	jsonResp, _ := json.Marshal(resp)
@@ -123,19 +121,35 @@ func wait(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer func(logFile *os.File) {
-		err := logFile.Close()
-		if err != nil {
-			log.Panic().Msg(err.Error())
-		}
-	}(logFile)
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
+
+	c := alice.New()
+
+	// Install the logger handler with default output on the console
+	c = c.Append(hlog.NewHandler(log))
+
+	// Install some provided extra handler to set some request's context fields.
+	// Thanks to that handler, all our logs will come with some prepopulated fields.
+	c = c.Append(hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
+		hlog.FromRequest(r).Info().
+			Str("method", r.Method).
+			Stringer("url", r.URL).
+			Int("status", status).
+			Int("size", size).
+			Dur("duration", duration).
+			Msg("")
+	}))
+	c = c.Append(hlog.RemoteAddrHandler("ip"))
+	c = c.Append(hlog.UserAgentHandler("user_agent"))
+	c = c.Append(hlog.RefererHandler("referer"))
+	c = c.Append(hlog.RequestIDHandler("req_id", "Request-Id"))
+
+	waitHandler := c.Then(http.HandlerFunc(wait))
+	heartbeatHandler := c.Then(http.HandlerFunc(heartbeat))
 	mux := http.NewServeMux()
-	waitHandler := http.HandlerFunc(wait)
-	heartbeatHandler := http.HandlerFunc(heartbeat)
-	mux.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), waitHandler))
-	mux.Handle("/heartbeat", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), heartbeatHandler))
+	mux.Handle("/", waitHandler)
+	mux.Handle("/heartbeat", heartbeatHandler)
 	//mux.HandleFunc("/", wait)
 	//mux.HandleFunc("/heartbeat", heartbeat)
 	srv := &http.Server{
