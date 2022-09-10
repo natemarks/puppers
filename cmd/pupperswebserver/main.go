@@ -18,12 +18,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/hlog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog/hlog"
 
 	"github.com/rs/zerolog"
 
@@ -101,7 +102,7 @@ func wait(w http.ResponseWriter, r *http.Request) {
 	wait, err := time.ParseDuration(waitDuration)
 	if err != nil {
 		hlog.FromRequest(r).Error().
-			Str("status", string(http.StatusUnprocessableEntity)).
+			Str("status", "StatusUnprocessableEntity").
 			Msg("Invalid wait parameter example 500ms")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		resp["message"] = "Invalid wait parameter example 500ms"
@@ -111,7 +112,7 @@ func wait(w http.ResponseWriter, r *http.Request) {
 	}
 	time.Sleep(wait)
 	hlog.FromRequest(r).Info().
-		Str("status", string(http.StatusOK)).
+		Str("status", "StatusOK").
 		Msg(fmt.Sprintf("You waited for %s", wait))
 	w.WriteHeader(http.StatusOK)
 	resp["message"] = fmt.Sprintf("You waited for %s", wait)
