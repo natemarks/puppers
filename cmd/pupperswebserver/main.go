@@ -15,11 +15,13 @@ package main
 //
 // shutdown - health/ready check
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/natemarks/puppers"
@@ -110,15 +112,36 @@ func main() {
 	}(logFile)
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/", wait)
-	http.HandleFunc("/heartbeat", hearbeat)
-
-	err := http.ListenAndServe(":8080", nil)
-	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
-	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
-		os.Exit(1)
+	mux.HandleFunc("/", wait)
+	mux.HandleFunc("/heartbeat", hearbeat)
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: mux,
 	}
+
+	go func() {
+
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Panic().Msgf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	// kill (no param) default send syscall.SIGTERM
+	// kill -2 is syscall.SIGINT
+	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Info().Msg("Shutdown Server ...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Panic().Msgf("Server Shutdown Failed: %s", err.Error())
+	}
+	log.Info().Msg("Graceful shutdown complete")
 }
