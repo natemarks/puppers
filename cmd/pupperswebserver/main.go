@@ -24,9 +24,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/natemarks/puppers"
+	"github.com/natemarks/puppers/secrets"
+
 	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
-	"github.com/natemarks/puppers"
 
 	"github.com/rs/zerolog"
 )
@@ -59,11 +61,33 @@ func init() {
 	}
 
 	// make sure we can access the credentials
-	// creds = secrets.GetRDSCredentials(secrets.GetSecretFromEnvar(), &log)
+	creds = secrets.GetRDSCredentials(secrets.GetSecretFromEnvar(), &log)
 
+	// Check connectivity to database instance
+	if !command.TCPOk(creds, 5) {
+		log.Panic().Msgf("TCP Connection Failure: %s:%d", creds.Host, creds.Port)
+	}
+	log.Info().Msgf("TCP Connection Success: %s:%d", creds.Host, creds.Port)
+
+	// Make sure the credentials are valid
+	validCreds, err := command.ValidCredentials(creds)
+	if !validCreds {
+		log.Panic().Msg(err.Error())
+	}
+	log.Info().Msg("database credentials are valid")
+	// run test query to check the number of databases
+	conn, err := command.NewInstanceConn(creds)
+	if err != nil {
+		log.Panic().Msg(err.Error())
+	}
+	dbNames, err := command.ListDatabases(conn)
+	if err != nil {
+		log.Panic().Msg(err.Error())
+	}
+	log.Info().Msgf("Found databases in instance: %d", len(dbNames))
 }
 
-func hearbeat(w http.ResponseWriter, r *http.Request) {
+func heartbeat(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	resp := make(map[string]string)
@@ -105,7 +129,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", wait)
-	mux.HandleFunc("/heartbeat", hearbeat)
+	mux.HandleFunc("/heartbeat", heartbeat)
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: mux,
