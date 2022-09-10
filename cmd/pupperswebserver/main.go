@@ -102,7 +102,7 @@ func main() {
 	defer func(logFile *os.File) {
 		err := logFile.Close()
 		if err != nil {
-
+			log.Panic().Msg(err.Error())
 		}
 	}(logFile)
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
