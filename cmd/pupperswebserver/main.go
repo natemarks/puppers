@@ -24,11 +24,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/natemarks/puppers"
-	"github.com/natemarks/puppers/secrets"
-
 	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
+	"github.com/natemarks/puppers"
 
 	"github.com/rs/zerolog"
 )
@@ -61,16 +59,8 @@ func init() {
 	}
 
 	// make sure we can access the credentials
-	creds = secrets.GetRDSCredentials(secrets.GetSecretFromEnvar(), &log)
+	// creds = secrets.GetRDSCredentials(secrets.GetSecretFromEnvar(), &log)
 
-}
-
-func waitResponse(w string) string {
-	if wait, err := time.ParseDuration(w); err == nil {
-		time.Sleep(wait)
-		return fmt.Sprintf("You waited for %s", w)
-	}
-	return "Invalid wait parameter example 500ms"
 }
 
 func hearbeat(w http.ResponseWriter, r *http.Request) {
