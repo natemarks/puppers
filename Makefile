@@ -4,7 +4,7 @@
 # Be sure to place this BEFORE `include` directives, if any.
 PKG := github.com/natemarks/puppers
 DEFAULT_BRANCH := main
-VERSION := 0.0.6
+VERSION := 0.0.7
 COMMIT := $(shell git rev-parse HEAD)
 SHELL := $(shell which bash)
 CDIR = $(shell pwd)
