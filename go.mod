@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.5
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.15.22
 	github.com/aws/aws-xray-sdk-go v1.7.0
+	github.com/justinas/alice v1.2.0
 	github.com/lib/pq v1.10.6
 	github.com/natemarks/ec2metadata v0.0.4
 	github.com/natemarks/postgr8 v0.0.6
@@ -32,6 +33,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rs/xid v1.4.0 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.34.0 // indirect
