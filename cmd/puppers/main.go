@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 
+	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
 
 	"github.com/natemarks/puppers/secrets"
