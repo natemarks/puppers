@@ -16,6 +16,7 @@ package main
 // shutdown - health/ready check
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -23,7 +24,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 
 	"github.com/natemarks/puppers"
 	"github.com/natemarks/puppers/secrets"
@@ -31,9 +32,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/natemarks/postgr8/command"
 
-	"github.com/rs/zerolog"
-
-	ginzerolog "github.com/dn365/gin-zerolog"
+	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
 const defaultGracefulShutdownTimeout = "200s"
@@ -88,14 +87,39 @@ func init() {
 		log.Panic().Msg(err.Error())
 	}
 	log.Info().Msgf("Found databases in instance: %d", len(dbNames))
+
+	xray.Configure(xray.Config{
+		DaemonAddr:     "127.0.0.1:8080", // default
+		ServiceVersion: puppers.Version,
+	})
 }
 
-func waitResponse(w string) string {
-	if wait, err := time.ParseDuration(w); err == nil {
-		time.Sleep(wait)
-		return fmt.Sprintf("You waited for %s", w)
+func heartbeat(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string)
+	resp["message"] = "Status OK"
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
+}
+
+func wait(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	resp := make(map[string]string)
+	waitDuration := r.URL.Query().Get("wait")
+	wait, err := time.ParseDuration(waitDuration)
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		resp["message"] = "Invalid wait parameter example 500ms"
+		jsonResp, _ := json.Marshal(resp)
+		w.Write(jsonResp)
+		return
 	}
-	return "Invalid wait parameter example 500ms"
+	time.Sleep(wait)
+	w.WriteHeader(http.StatusOK)
+	resp["message"] = fmt.Sprintf("You waited for %s", wait)
+	jsonResp, _ := json.Marshal(resp)
+	w.Write(jsonResp)
 }
 
 func main() {
@@ -107,51 +131,31 @@ func main() {
 	}(logFile)
 	log.Info().Msgf("pupperswebserver is starting with graceful shutdown timeout: %s",
 		gracefulShutdownTimeout)
-
-	router := gin.Default()
-	router.Use(ginzerolog.Logger("gin"), gin.Recovery())
-	router.GET("/", func(c *gin.Context) {
-		q := c.Request.URL.Query()
-		c.String(http.StatusOK, waitResponse(fmt.Sprint(q["wait"][0])))
-	})
-
+	mux := http.NewServeMux()
+	waitHandler := http.HandlerFunc(wait)
+	heartbeatHandler := http.HandlerFunc(heartbeat)
+	mux.Handle("/", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), waitHandler))
+	mux.Handle("/heartbeat", xray.Handler(xray.NewFixedSegmentNamer("pupperswebserver"), heartbeatHandler))
+	//mux.HandleFunc("/", wait)
+	//mux.HandleFunc("/heartbeat", heartbeat)
 	srv := &http.Server{
 		Addr:    ":8080",
-		Handler: router,
-	}
-
-	hbRouter := gin.Default()
-	hbRouter.Use(ginzerolog.Logger("gin"), gin.Recovery())
-
-	hbRouter.GET("/heartbeat", func(c *gin.Context) {
-		c.Data(200, "text/plain", []byte("."))
-	})
-
-	hbSrv := &http.Server{
-		Addr:    ":8786",
-		Handler: hbRouter,
+		Handler: mux,
 	}
 
 	go func() {
-		// service connections
+
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("listen: %s\n", err)
+			log.Panic().Msgf("listen: %s\n", err)
 		}
 	}()
 
-	go func() {
-		// service connections
-		if err := hbSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("listen: %s\n", err)
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shut down the server with
+	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.
 	quit := make(chan os.Signal, 1)
 	// kill (no param) default send syscall.SIGTERM
 	// kill -2 is syscall.SIGINT
-	// kill -9 is syscall.SIGKILL but can't be caught, so don't need to add it
+	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Info().Msg("Shutdown Server ...")
@@ -159,11 +163,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server Shutdown: %s", err.Error())
+		log.Panic().Msgf("Server Shutdown Failed: %s", err.Error())
 	}
-	if err := hbSrv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server Shutdown: %s", err.Error())
-	}
-
 	log.Info().Msg("Graceful shutdown complete")
 }
