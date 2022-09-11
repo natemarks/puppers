@@ -120,6 +120,10 @@ git-status: ## require status is clean so we can use undo_edits to put things ba
 	fi
 
 docker-release: ## create docker image
-	docker build -t puppers:$(VERSION) -f docker/Dockerfile .
+	docker build -t puppers:$(VERSION) \
+	docker build -t puppers:$(COMMIT) \
+	-f docker/Dockerfile .
+
+print-%  : ; @echo $($*)
 
 .PHONY: build static test	
