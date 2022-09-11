@@ -119,10 +119,31 @@ git-status: ## require status is clean so we can use undo_edits to put things ba
 		exit 1; \
 	fi
 
-docker-release: ## create docker image
-	docker build -t puppers:$(VERSION) \
-	docker build -t puppers:$(COMMIT) \
-	-f docker/Dockerfile .
+docker-build: git-status ## create docker image with commit tag
+	( \
+		aws ecr get-login-password --region us-east-1 | docker login \
+		--username AWS \
+		--password-stdin 709310380790.dkr.ecr.us-east-1.amazonaws.com; \
+	   docker build \
+       	-t puppers:$(COMMIT) \
+       	-t 709310380790.dkr.ecr.us-east-1.amazonaws.com/puppers:$(COMMIT) \
+       	-f docker/Dockerfile .; \
+       	docker push 709310380790.dkr.ecr.us-east-1.amazonaws.com/puppers:$(COMMIT); \
+	)
+
+
+docker-release: git-status ## create docker image with release version tag
+	( \
+		aws ecr get-login-password --region us-east-1 | docker login \
+		--username AWS \
+		--password-stdin 709310380790.dkr.ecr.us-east-1.amazonaws.com; \
+	   docker build \
+       	-t puppers:$(VERSION) \
+       	-t 709310380790.dkr.ecr.us-east-1.amazonaws.com/puppers:$(VERSION) \
+       	-f docker/Dockerfile .; \
+       	docker push 709310380790.dkr.ecr.us-east-1.amazonaws.com/puppers:$(VERSION); \
+	)
+
 
 print-%  : ; @echo $($*)
 
