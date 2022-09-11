@@ -27,7 +27,7 @@ steps:
 
   - task: ECRPushImage@1
     inputs:
-        awsCredentials: "imprivata-sandbox azure_pipelines_admin"
+        awsCredentials: "my-connection-name"
         regionName: "us-east-1"
         imageSource: "imagename"
         sourceImageName: "puppers"
