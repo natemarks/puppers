@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import os
+"""Deploy puppers test application
+Use CDK to deploy puppers for testing
+"""
 
 import aws_cdk as cdk
 
