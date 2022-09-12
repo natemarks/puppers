@@ -97,7 +97,7 @@ class Ec2Stack(Stack):
             machine_image=ec2_optimized_ami,
             vpc=target_vpc,
             vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT
+                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
             ),
             role=role,
             user_data=ec2.UserData.custom(user_data),

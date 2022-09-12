@@ -25,7 +25,7 @@ class VpcStack(Stack):
                 ),
                 ec2.SubnetConfiguration(
                     name="pupperstest_private",
-                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT,
+                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,
                 ),
                 ec2.SubnetConfiguration(
                     name="pupperstest_isolated",
