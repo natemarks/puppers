@@ -159,6 +159,15 @@ destroy:  ## deploy puppers
     	   cdk destroy --all; \
     	)
 
+
+redeploy-ec2:  ## deploy puppers
+	( \
+    	   source .venv/bin/activate; \
+		   cd deployments/cdk; \
+    	   cdk destroy PuppersTestEc2Stack; \
+    	   cdk deploy PuppersTestEc2Stack; \
+    	)
+
 print-%  : ; @echo $($*)
 
 pylint: ## run pylint on python files
