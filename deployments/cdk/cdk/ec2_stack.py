@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_iam as iam,
     aws_secretsmanager as sm,
+    aws_rds as rds,
 )
 from constructs import Construct
 
@@ -14,10 +15,15 @@ from constructs import Construct
 class Ec2Stack(Stack):
     """VPC stack subclass"""
 
-    def __init__(self, scope: Construct,
-                 construct_id: str,
-                 target_vpc: ec2.vpc,
-                 secret: sm.Secret, **kwargs) -> None:
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        target_vpc,
+        secret: sm.Secret,
+        rds_instance: rds.DatabaseInstance,
+        **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         with open("./userdata/puppers.sh", encoding="utf-8") as file:

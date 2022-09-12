@@ -10,10 +10,13 @@ from aws_cdk import (
 )
 from constructs import Construct
 
+
 class RdsStack(Stack):
     """RDS stack subclass"""
 
-    def __init__(self, scope: Construct, construct_id: str, target_vpc, **kwargs) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, target_vpc, **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         self.my_secret = sm.Secret(
