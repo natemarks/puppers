@@ -163,7 +163,7 @@ pylint: ## run pylint on python files
 black: ## use black to format python files
 	( \
        . .venv/bin/activate; \
-       find . -type f -name "*.py" -not -path "./.venv/*" | xargs black; \
+       git ls-files '*.py' | xargs black; \
     )
 
 .PHONY: build static test	
