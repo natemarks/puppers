@@ -164,8 +164,8 @@ redeploy-ec2:  ## deploy puppers
 	( \
     	   source .venv/bin/activate; \
 		   cd deployments/cdk; \
-    	   cdk destroy PuppersTestEc2Stack; \
-    	   cdk deploy PuppersTestEc2Stack; \
+    	   cdk destroy PuppersTestEc2Stack --force; \
+    	   cdk deploy PuppersTestEc2Stack --require-approval never; \
     	)
 
 print-%  : ; @echo $($*)
