@@ -36,7 +36,7 @@ class RdsStack(Stack):
         )
         parameter_group = rds.ParameterGroup(
             self,
-            "ParameterGroup",
+            "PuppersTestRdsParameterGroup",
             engine=engine,
             parameters={
                 "rds.logical_replication": "1",
@@ -48,7 +48,7 @@ class RdsStack(Stack):
         )
         self.instance1 = rds.DatabaseInstance(
             self,
-            "PostgresInstance1",
+            "PuppersTestRdsInstance",
             engine=engine,
             parameter_group=parameter_group,
             credentials=rds.Credentials.from_secret(self.my_secret),
@@ -75,7 +75,7 @@ class RdsStack(Stack):
         )
         sm.SecretRotation(
             self,
-            "SecretRotation",
+            "PuppersTestSecretRotation",
             application=sm.SecretRotationApplication.POSTGRES_ROTATION_SINGLE_USER,
             # Postgres single user scheme
             secret=self.my_secret,

@@ -77,8 +77,10 @@ class Ec2Stack(Stack):
         role.add_to_policy(
             iam.PolicyStatement(
                 resources=[
-                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1.devops-artifacts",
-                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1.devops-artifacts/*",
+                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1"
+                    ".devops-artifacts",
+                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1"
+                    ".devops-artifacts/*",
                 ],
                 actions=["s3:ListBucket"],
             )
@@ -86,14 +88,15 @@ class Ec2Stack(Stack):
         role.add_to_policy(
             iam.PolicyStatement(
                 resources=[
-                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1.devops-artifacts/puppers/*"
+                    "arn:aws:s3:::com.imprivata.709310380790.us-east-1"
+                    ".devops-artifacts/puppers/*"
                 ],
                 actions=["s3:GetObject"],
             )
         )
         self.instance = ec2.Instance(
             self,
-            "Instance",
+            "PupperstestInstance",
             instance_type=ec2.InstanceType("t3.nano"),
             machine_image=ec2_optimized_ami,
             vpc=target_vpc,
