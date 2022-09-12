@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=anomalous-backslash-in-string
 """Build the VPC stack for puppers tst
 """
 import json
@@ -21,7 +22,7 @@ class RdsStack(Stack):
 
         self.my_secret = sm.Secret(
             self,
-            "Secret",
+            "PuppersTestRdsSecret",
             generate_secret_string=sm.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {"username": "postgres"}, separators=(",", ":")

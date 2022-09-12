@@ -149,7 +149,14 @@ deploy:  ## deploy puppers
 	( \
     	   source .venv/bin/activate; \
 		   cd deployments/cdk; \
-    	   cdk ls; \
+    	   cdk deploy --all; \
+    	)
+
+destroy:  ## deploy puppers
+	( \
+    	   source .venv/bin/activate; \
+		   cd deployments/cdk; \
+    	   cdk destroy --all; \
     	)
 
 print-%  : ; @echo $($*)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=line-too-long,too-many-arguments,
 """Build the EC2 stack to deploy puppers directly on an ec2 instance
 """
 from aws_cdk import (
