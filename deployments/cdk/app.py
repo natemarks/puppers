@@ -8,6 +8,7 @@ import aws_cdk as cdk
 from cdk.vpc_stack import VpcStack
 from cdk.rds_stack import RdsStack
 from cdk.ec2_stack import Ec2Stack
+from cdk.fargate_stack import FargateStack
 
 
 app = cdk.App()
@@ -22,5 +23,10 @@ ec2_stack = Ec2Stack(
     rds_stack.instance1,
 )
 ec2_stack.add_dependency(rds_stack)
+fargate_stack = FargateStack(app,
+                             "PuppersTestFargateStack",
+                             vpc_stack.vpc,
+                             rds_stack.my_secret,)
+fargate_stack.add_dependency(rds_stack)
 
 app.synth()
