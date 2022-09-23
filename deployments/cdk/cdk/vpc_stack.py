@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=line-too-long,too-many-arguments,
 """Build the VPC stack for puppers tst
 """
 from aws_cdk import (

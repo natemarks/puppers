@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=line-too-long,too-many-arguments,
+# pylint: disable=duplicate-code,too-many-arguments
 """Build the EC2 stack to deploy puppers directly on an ec2 instance
 """
 from aws_cdk import (
@@ -19,13 +19,13 @@ class FargateStack(Stack):
     """VPC stack subclass"""
 
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            target_vpc,
-            secret: sm.Secret,
-            rds_instance: rds.DatabaseInstance,
-            **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        target_vpc,
+        secret: sm.Secret,
+        rds_instance: rds.DatabaseInstance,
+        **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         task_role = iam.Role(
@@ -46,37 +46,33 @@ class FargateStack(Stack):
             )
         )
         task_role.add_to_policy(
-            iam.PolicyStatement(resources=["*"],
-                                actions=["secretsmanager:ListSecrets"])
+            iam.PolicyStatement(resources=["*"], actions=["secretsmanager:ListSecrets"])
         )
         cluster = ecs.Cluster(self, "PuppersTestCluster", vpc=target_vpc)
-        repo = ecr.Repository.from_repository_name(self,
-                                                   "PuppersRepository",
-                                                   "puppers")
+        repo = ecr.Repository.from_repository_name(self, "PuppersRepository", "puppers")
         image = ecs.ContainerImage.from_ecr_repository(
-            repository=repo,
-            tag="245edeeca8adba53919986eeef5716fdb26579c4")
+            repository=repo, tag="245edeeca8adba53919986eeef5716fdb26579c4"
+        )
         fgs = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
             "MyFargateService",
             cluster=cluster,  # Required
             cpu=512,  # Default is 256
             desired_count=6,  # Default is 1
-            task_image_options=ecs_patterns
-            .ApplicationLoadBalancedTaskImageOptions(
+            task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=image,
                 container_port=8080,
-                environment={
-                    "PUPPERS_SECRET_NAME":
-                        secret.secret_name},
-            task_role=task_role),
+                environment={"PUPPERS_SECRET_NAME": secret.secret_name},
+                task_role=task_role,
+            ),
             memory_limit_mib=2048,  # Default is 512
-            public_load_balancer=True)  # Default is True
+            public_load_balancer=True,
+        )  # Default is True
         fgs.service.connections.allow_to_default_port(rds_instance)
         fgs.target_group.configure_health_check(
             enabled=True,
             path="/heartbeat",
             interval=Duration.seconds(120),
             timeout=Duration.seconds(2),
-            port="8080"
+            port="8080",
         )
