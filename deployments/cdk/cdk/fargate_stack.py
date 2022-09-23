@@ -8,6 +8,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_ecr as ecr,
     aws_secretsmanager as sm,
+    aws_rds as rds,
     aws_ecs_patterns as ecs_patterns,
 )
 from constructs import Construct
@@ -22,6 +23,7 @@ class FargateStack(Stack):
             construct_id: str,
             target_vpc,
             secret: sm.Secret,
+            rds_instance: rds.DatabaseInstance,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -54,7 +56,7 @@ class FargateStack(Stack):
             repository=repo,
             tag="245edeeca8adba53919986eeef5716fdb26579c4")
 
-        ecs_patterns.ApplicationLoadBalancedFargateService(
+        fgs = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
             "MyFargateService",
             cluster=cluster,  # Required
@@ -70,3 +72,4 @@ class FargateStack(Stack):
             task_role=task_role),
             memory_limit_mib=2048,  # Default is 512
             public_load_balancer=True)  # Default is True
+        fgs.service.connections.allow_to_default_port(rds_instance)

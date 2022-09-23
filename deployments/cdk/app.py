@@ -26,7 +26,8 @@ ec2_stack.add_dependency(rds_stack)
 fargate_stack = FargateStack(app,
                              "PuppersTestFargateStack",
                              vpc_stack.vpc,
-                             rds_stack.my_secret,)
+                             rds_stack.my_secret,
+                             rds_stack.instance1,)
 fargate_stack.add_dependency(rds_stack)
 
 app.synth()
