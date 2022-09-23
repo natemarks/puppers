@@ -3,6 +3,7 @@
 """Build the EC2 stack to deploy puppers directly on an ec2 instance
 """
 from aws_cdk import (
+    Duration,
     Stack,
     aws_ecs as ecs,
     aws_iam as iam,
@@ -55,7 +56,6 @@ class FargateStack(Stack):
         image = ecs.ContainerImage.from_ecr_repository(
             repository=repo,
             tag="245edeeca8adba53919986eeef5716fdb26579c4")
-
         fgs = ecs_patterns.ApplicationLoadBalancedFargateService(
             self,
             "MyFargateService",
@@ -73,3 +73,10 @@ class FargateStack(Stack):
             memory_limit_mib=2048,  # Default is 512
             public_load_balancer=True)  # Default is True
         fgs.service.connections.allow_to_default_port(rds_instance)
+        fgs.target_group.configure_health_check(
+            enabled=True,
+            path="/heartbeat",
+            interval=Duration.seconds(120),
+            timeout=Duration.seconds(2),
+            port="8080"
+        )
