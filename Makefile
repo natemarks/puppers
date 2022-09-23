@@ -24,6 +24,7 @@ clean-venv: ## re-create virtual env
 	( \
        source .venv/bin/activate; \
        pip install --upgrade pip setuptools; \
+	   pip install -r requirements.txt; \
     )
 
 unittest: ## run test that don't require deployed resources
@@ -144,7 +145,41 @@ docker-release: git-status ## create docker image with release version tag
        	docker push 709310380790.dkr.ecr.us-east-1.amazonaws.com/puppers:$(VERSION); \
 	)
 
+deploy:  ## deploy puppers
+	( \
+    	   source .venv/bin/activate; \
+		   cd deployments/cdk; \
+    	   cdk deploy --all; \
+    	)
+
+destroy:  ## deploy puppers
+	( \
+    	   source .venv/bin/activate; \
+		   cd deployments/cdk; \
+    	   cdk destroy --all; \
+    	)
+
+
+redeploy-ec2:  ## deploy puppers
+	( \
+    	   source .venv/bin/activate; \
+		   cd deployments/cdk; \
+    	   cdk destroy PuppersTestEc2Stack --force; \
+    	   cdk deploy PuppersTestEc2Stack --require-approval never; \
+    	)
 
 print-%  : ; @echo $($*)
+
+pylint: ## run pylint on python files
+	( \
+       . .venv/bin/activate; \
+       git ls-files '*.py' | xargs pylint --max-line-length=90; \
+    )
+
+black: ## use black to format python files
+	( \
+       . .venv/bin/activate; \
+       git ls-files '*.py' | xargs black; \
+    )
 
 .PHONY: build static test	
