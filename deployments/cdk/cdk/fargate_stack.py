@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # pylint: disable=duplicate-code,too-many-arguments
-"""Build the EC2 stack to deploy puppers directly on an ec2 instance
+"""Build the Fargate stack to deploy puppers in ECS fargate with an ALB
 """
 from aws_cdk import (
     Duration,
@@ -48,7 +48,7 @@ class FargateStack(Stack):
         task_role.add_to_policy(
             iam.PolicyStatement(resources=["*"], actions=["secretsmanager:ListSecrets"])
         )
-        cluster = ecs.Cluster(self, "PuppersTestCluster", vpc=target_vpc)
+        cluster = ecs.Cluster(self, "PuppersTestFargateCluster", vpc=target_vpc)
         repo = ecr.Repository.from_repository_name(self, "PuppersRepository", "puppers")
         image = ecs.ContainerImage.from_ecr_repository(
             repository=repo, tag="245edeeca8adba53919986eeef5716fdb26579c4"
@@ -58,7 +58,7 @@ class FargateStack(Stack):
             "MyFargateService",
             cluster=cluster,  # Required
             cpu=512,  # Default is 256
-            desired_count=6,  # Default is 1
+            desired_count=3,  # Default is 1
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
                 image=image,
                 container_port=8080,
