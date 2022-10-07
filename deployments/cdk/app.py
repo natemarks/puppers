@@ -9,6 +9,7 @@ from cdk.vpc_stack import VpcStack
 from cdk.rds_stack import RdsStack
 from cdk.ec2_stack import Ec2Stack
 from cdk.fargate_stack import FargateStack
+from cdk.nlb_ec2_stack import Ec2NlbStack
 
 
 app = cdk.App()
@@ -31,5 +32,13 @@ fargate_stack = FargateStack(
     rds_stack.instance1,
 )
 fargate_stack.add_dependency(rds_stack)
+ecs_ec2_nlb_stack = Ec2NlbStack(
+    app,
+    "PuppersTestEcsEc2NlbStack",
+    vpc_stack.vpc,
+    rds_stack.my_secret,
+    rds_stack.instance1,
+)
+ecs_ec2_nlb_stack.add_dependency(rds_stack)
 
 app.synth()
