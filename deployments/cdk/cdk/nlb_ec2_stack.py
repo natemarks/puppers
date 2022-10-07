@@ -61,9 +61,7 @@ class Ec2NlbStack(Stack):
             )
         )
         task_role.add_to_policy(
-            iam.PolicyStatement(
-                resources=["*"], actions=["secretsmanager:ListSecrets"]
-            )
+            iam.PolicyStatement(resources=["*"], actions=["secretsmanager:ListSecrets"])
         )
         cluster = ecs.Cluster(self, "PuppersTestEc2NlbCluster", vpc=target_vpc)
         my_asg = autoscaling.AutoScalingGroup(
@@ -82,9 +80,7 @@ class Ec2NlbStack(Stack):
             auto_scaling_group=my_asg,
         )
         cluster.add_asg_capacity_provider(capacity_provider)
-        repo = ecr.Repository.from_repository_name(
-            self, "PuppersRepository", "puppers"
-        )
+        repo = ecr.Repository.from_repository_name(self, "PuppersRepository", "puppers")
         image = ecs.ContainerImage.from_ecr_repository(
             repository=repo, tag="245edeeca8adba53919986eeef5716fdb26579c4"
         )
