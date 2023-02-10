@@ -26,3 +26,4 @@ version.txt
 
 # CDK asset staging directory
 **/.cdk.staging
+node_modules
